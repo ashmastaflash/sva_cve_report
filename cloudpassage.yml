@@ -4,3 +4,4 @@ defaults:
     api_hostname: "api.cloudpassage.com"
     api_port: 443
     include_groups: 0
+    include_aws: 0

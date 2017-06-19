@@ -16,6 +16,12 @@ In the cloudpassage.yml file set the value for include_groups
 
 > Set include_groups to 1 to include group names in the report
 
+Set include_aws to include or exclude AWS metadata from the report
+In the cloudpassage.yml file set the value for include_aws
+> Set include_aws to 0 to exclude AWS metadata from the report
+
+> Set include_aws to 1 to include AWS metadata in the report
+
 # Requirements
 
 This script requires Python 2.7.10 or greater
@@ -37,9 +43,9 @@ usage: halo_sva_report_custom.py [-h] [--allcves] [--highcves]
 
 optional arguments:
   -h, --help  show this help message and exit
-  
+
   --allcves   Use this to generate a report containing all Halo detected CVEs
-  
+
   --highcves  Use this to generate a report containing only high rated CVE's
               (>=7.0 CVSS score) Halo detected CVEs
 

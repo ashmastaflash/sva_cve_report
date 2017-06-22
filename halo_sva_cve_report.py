@@ -75,7 +75,7 @@ def get_scan_data(session):
         report_type = "all_cves_"
     else:
         report_type = "high_cves_"
-    out_file = "reports/Vunerability_Report_"+ report_type + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+    out_file = "reports/Vulnerability_Report_"+ report_type + time.strftime("%Y%m%d-%H%M%S") + ".csv"
     ofile  = open(out_file, "w")
     halo_server_list = get_halo_servers_id(session)
     get_halo_servers_scans= cloudpassage.HttpHelper(session)

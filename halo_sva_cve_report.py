@@ -1,10 +1,11 @@
 # WARNING: This script takes a long time to execute if you have a high count
 #          of active servers.
 # Author: Sean Nicholson
-# Version 1.1.1
-# Date 06.19.2017
+# Version 1.1.2
+# Date 06.28.2017
 # v 1.0.1 - reduced per page calls to the servers endpoint to 100 from 1000
 # v 1.1.1 - added logic for including/excluding AWS metadata
+# v 1.1.2 - added 4 tier CVE rating logic
 ##############################################################################
 
 # Import Python Modules
@@ -126,7 +127,9 @@ def get_scan_data(session):
                             if include_aws:
                                 if args.allcves:
                                     for cve in finding_cves:
-                                        if float(cve['cvss_score']) >= 7.0:
+                                        if float(cve['cvss_score']) >= 9.0:
+                                            cve_rating = 'Critical'
+                                        elif float(cve['cvss_score']) < 9.0 and float(cve['cvss_score']) >= 7.0:
                                             cve_rating = 'High'
                                         elif float(cve['cvss_score']) < 7.0 and float(cve['cvss_score']) >= 4.0:
                                             cve_rating = 'Moderate'
@@ -152,7 +155,9 @@ def get_scan_data(session):
                             else:
                                 if args.allcves:
                                     for cve in finding_cves:
-                                        if float(cve['cvss_score']) >= 7.0:
+                                        if float(cve['cvss_score']) >= 9.0:
+                                            cve_rating = 'Critical'
+                                        elif float(cve['cvss_score']) < 9.0 and float(cve['cvss_score']) >= 7.0:
                                             cve_rating = 'High'
                                         elif float(cve['cvss_score']) < 7.0 and float(cve['cvss_score']) >= 4.0:
                                             cve_rating = 'Moderate'

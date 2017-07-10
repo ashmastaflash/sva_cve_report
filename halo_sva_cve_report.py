@@ -1,11 +1,12 @@
 # WARNING: This script takes a long time to execute if you have a high count
 #          of active servers.
 # Author: Sean Nicholson
-# Version 1.1.2
-# Date 06.28.2017
+# Version 1.1.3
+# Date 07.10.2017
 # v 1.0.1 - reduced per page calls to the servers endpoint to 100 from 1000
 # v 1.1.1 - added logic for including/excluding AWS metadata
-# v 1.1.2 - added 4 tier CVE rating logic
+# v 1.1.2 - added 4 tier CVE rating logic to --allcves
+# v 1.1.3 - added 4 tier CVE rating logic to --highcves
 ##############################################################################
 
 # Import Python Modules
@@ -144,8 +145,16 @@ def get_scan_data(session):
                                         ofile.write(row)
                                 if args.highcves:
                                     for cve in finding_cves:
-                                        if float(cve['cvss_score']) >= 7.0:
+                                        if float(cve['cvss_score']) >= 7.0 and float(cve['cvss_score']) < 9.0:
                                             cve_rating = 'High'
+                                            cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
+                                            if groups_setting:
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve_rating,cve_link)
+                                            else:
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7}\n".format(server['aws_account_id'],server['aws_instance_id'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve_rating,cve_link)
+                                            ofile.write(row)
+                                        if float(cve['cvss_score']) >= 9.0:
+                                            cve_rating = 'Critical'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:
                                                 row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve_rating,cve_link)
@@ -172,7 +181,15 @@ def get_scan_data(session):
                                         ofile.write(row)
                                 if args.highcves:
                                     for cve in finding_cves:
-                                        if float(cve['cvss_score']) >= 7.0:
+                                        if float(cve['cvss_score']) >= 7.0 and float(cve['cvss_score']) < 9.0:
+                                            cve_rating = 'High'
+                                            cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
+                                            if groups_setting:
+                                                row="{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['hostname'],server['group_name'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve_rating,cve_link)
+                                            else:
+                                                row="{0},{1},{2},{3},{4},{5},{6},{7}\n".format(server['hostname'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve_rating,cve_link)
+                                            ofile.write(row)
+                                        if float(cve['cvss_score']) >= 9.0:
                                             cve_rating = 'High'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:

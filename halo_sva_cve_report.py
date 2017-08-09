@@ -1,17 +1,18 @@
 # WARNING: This script takes a long time to execute if you have a high count
 #          of active servers.
 # Author: Sean Nicholson
-# Version 1.1.4
-# Date 07.21.2017
+# Version 1.1.5
+# Date 08.08.2017
 # v 1.0.1 - reduced per page calls to the servers endpoint to 100 from 1000
 # v 1.1.1 - added logic for including/excluding AWS metadata
 # v 1.1.2 - added 4 tier CVE rating logic to --allcves
 # v 1.1.3 - added 4 tier CVE rating logic to --highcves
 # v 1.1.4 - Added CVSS score to the CSV report
+# v 1.1.5 - Added --criticalcves command line argument option
 ##############################################################################
 
 # Import Python Modules
-import json, csv, base64, requests, os,  argparse
+import json, csv, base64, requests, os,  argparse, sys
 import cloudpassage
 import yaml
 import time
@@ -76,8 +77,10 @@ def get_scan_data(session):
         os.makedirs("reports")
     if args.allcves:
         report_type = "all_cves_"
-    else:
+    elif args.highcves:
         report_type = "high_cves_"
+    elif args.criticalcves:
+        report_type = "critical_cves_"
     out_file = "reports/Vulnerability_Report_"+ report_type + time.strftime("%Y%m%d-%H%M%S") + ".csv"
     ofile  = open(out_file, "w")
     halo_server_list = get_halo_servers_id(session)
@@ -92,7 +95,7 @@ def get_scan_data(session):
         if groups_setting:
             ofile.write('AWS Account Number,Halo Group,AWS Instance ID,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
         else:
-            ofile.write('AWS Account Number,AWS Instance ID,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
+            ofile.write('AWS Account Number,AWS Instance ID,Hostname,UUID,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
     else:
         if groups_setting:
             ofile.write('Hostname,Halo Group,IP Address,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
@@ -162,6 +165,16 @@ def get_scan_data(session):
                                             else:
                                                 row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             ofile.write(row)
+                                if args.criticalcves:
+                                    for cve in finding_cves:
+                                        if float(cve['cvss_score']) >= 9.0:
+                                            cve_rating = 'Critical'
+                                            cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
+                                            if groups_setting:
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                            else:
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                            ofile.write(row)
                             else:
                                 if args.allcves:
                                     for cve in finding_cves:
@@ -191,13 +204,24 @@ def get_scan_data(session):
                                                 row="{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['hostname'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cvss_score'],cve['cve_entry'],cve_rating,cve_link)
                                             ofile.write(row)
                                         if float(cve['cvss_score']) >= 9.0:
-                                            cve_rating = 'High'
+                                            cve_rating = 'Critical'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:
                                                 row="{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['hostname'],server['group_name'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             else:
                                                 row="{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['hostname'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             ofile.write(row)
+                                if args.criticalcves:
+                                    for cve in finding_cves:
+                                        if float(cve['cvss_score']) >= 9.0:
+                                            cve_rating = 'Critical'
+                                            cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
+                                            if groups_setting:
+                                                row="{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['hostname'],server['group_name'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                            else:
+                                                row="{0},{1},{2},{3},{4},{5},{6},{7},{8}\n".format(server['hostname'],server['ip_address'],server['platform'],finding['package_name'],finding['package_version'],cve['cvss_score'],cve['cve_entry'],cve_rating,cve_link)
+                                            ofile.write(row)
+
                 retry_loop_counter = 6
             elif status_code == "401":
                 headers = get_headers()
@@ -223,7 +247,7 @@ def get_halo_servers_id(session):
         serverOSversion = str(server['platform']) + " " + str(server['platform_version'])
         if 'aws_ec2' in server:
             ec2_data = server['aws_ec2']
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname': server['hostname'], 'aws_instance_id':ec2_data['ec2_instance_id'], 'aws_account_id': ec2_data['ec2_account_id'], 'group_name': server['group_name'],'platform': serverOSversion,})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname': server['hostname'], 'aws_instance_id':ec2_data['ec2_instance_id'], 'aws_account_id': ec2_data['ec2_account_id'], 'group_name': server['group_name'],'platform': serverOSversion,'uuid':server['id']})
         elif server['server_label'] and "_" in server['server_label']:
             server_label = server['server_label']
             server_label_parts = server_label.split("_")
@@ -231,13 +255,13 @@ def get_halo_servers_id(session):
             #old_agent_count += 1
             server_label_account = server_label_parts[0]
             server_label_instance = server_label_parts[1]
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':server_label_instance, 'aws_account_id': server_label_account, 'group_name': server['group_name'], 'platform': serverOSversion})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':server_label_instance, 'aws_account_id': server_label_account, 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id']})
         else:
             if server['server_label']:
                 server_label = server['server_label']
             #print server_label_parts[1]
             #old_agent_count += 1
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':"N/A", 'aws_account_id': "N/A", 'group_name': server['group_name'], 'platform': serverOSversion})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':"N/A", 'aws_account_id': "N/A", 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id']})
     print len(reply)
     halo_instance_id_list = byteify(halo_server_id_list)
     print "Halo Server ID and AWS Account ID Lookup Complete " + time.strftime("%Y%m%d-%H%M%S")
@@ -249,7 +273,8 @@ script_actions = 0
 # Parse command line arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("--allcves", help="Use this to generate a report containing all Halo detected CVEs", action="store_true")
-parser.add_argument("--highcves", help="Use this to generate a report containing only high rated CVE's (>=7.0 CVSS score) Halo detected CVEs", action="store_true")
+parser.add_argument("--highcves", help="Use this to generate a report containing only high and critical rated CVE's (>=7.0 CVSS score) Halo detected CVEs", action="store_true")
+parser.add_argument("--criticalcves", help="Use this to generate a report containing only critical rated CVE's (>=9.0 CVSS score) Halo detected CVEs", action="store_true")
 args = parser.parse_args()
 ###############################################################################
 
@@ -257,14 +282,8 @@ args = parser.parse_args()
 # Validate script arguments are set and config.py variable values set
 
 
-if args.highcves and args.allcves:
-    print "To many arguments passed to script for CVEs to include, please specify singular script actions"
-    print "See README.md or run halo_sva_report_custom.py --help"
-    print "Nothing to do...Exiting...."
-    sys.exit(0)
-
 # If no arguments passed then exit with message
-if not args.highcves and not args.allcves:
+if not args.highcves and not args.allcves and not args.criticalcves:
     print "No CVE classification arguments passed to script, please specify script actions"
     print "See README.md or run halo_sva_report_custom.py --help"
     print "Nothing to do...Exiting...."

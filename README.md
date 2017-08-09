@@ -48,6 +48,7 @@ optional arguments:
 
   --highcves  Use this to generate a report containing only high and critical rated CVE's
               (>=7.0 CVSS score) Halo detected CVEs
+
   --criticalcves  Use this to generate a report containing only critical rated CVE's
               (>=9.0 CVSS score) Halo detected CVEs
 

@@ -94,9 +94,9 @@ def get_scan_data(session):
         print "AWS Setting: {0}".format(include_aws)
     if include_aws:
         if groups_setting:
-            ofile.write('AWS Account Number,Halo Group,AWS Instance ID,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
+            ofile.write('AWS Account Number,Halo Group,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
         else:
-            ofile.write('AWS Account Number,AWS Instance ID,Hostname,UUID,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
+            ofile.write('AWS Account Number,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
     else:
         if groups_setting:
             ofile.write('Hostname,Halo Group,IP Address,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')

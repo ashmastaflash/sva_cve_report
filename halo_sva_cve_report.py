@@ -1,14 +1,15 @@
 # WARNING: This script takes a long time to execute if you have a high count
 #          of active servers.
 # Author: Sean Nicholson
-# Version 1.1.5
-# Date 08.08.2017
+# Version 1.1.6
+# Date 08.14.2017
 # v 1.0.1 - reduced per page calls to the servers endpoint to 100 from 1000
 # v 1.1.1 - added logic for including/excluding AWS metadata
 # v 1.1.2 - added 4 tier CVE rating logic to --allcves
 # v 1.1.3 - added 4 tier CVE rating logic to --highcves
 # v 1.1.4 - Added CVSS score to the CSV report
 # v 1.1.5 - Added --criticalcves command line argument option
+# v 1.1.6 - Added region to CSV export
 ##############################################################################
 
 # Import Python Modules
@@ -143,9 +144,9 @@ def get_scan_data(session):
                                             #print cve['cve_entry']
                                         cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                         if groups_setting:
-                                            row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                            row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],sever['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                         else:
-                                            row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                            row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                         ofile.write(row)
                                 if args.highcves:
                                     for cve in finding_cves:
@@ -153,17 +154,17 @@ def get_scan_data(session):
                                             cve_rating = 'High'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             else:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             ofile.write(row)
                                         if float(cve['cvss_score']) >= 9.0:
                                             cve_rating = 'Critical'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             else:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             ofile.write(row)
                                 if args.criticalcves:
                                     for cve in finding_cves:
@@ -171,9 +172,9 @@ def get_scan_data(session):
                                             cve_rating = 'Critical'
                                             cve_link="https://cve.mitre.org/cgi-bin/cvename.cgi?name=" + cve['cve_entry']
                                             if groups_setting:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}\n".format(server['aws_account_id'],server['group_name'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             else:
-                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9}\n".format(server['aws_account_id'],server['aws_instance_id'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
+                                                row="'{0}',{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}\n".format(server['aws_account_id'],server['aws_instance_id'],server['region'],server['hostname'],server['platform'],finding['package_name'],finding['package_version'],cve['cve_entry'],cve['cvss_score'],cve_rating,cve_link)
                                             ofile.write(row)
                             else:
                                 if args.allcves:
@@ -247,7 +248,7 @@ def get_halo_servers_id(session):
         serverOSversion = str(server['platform']) + " " + str(server['platform_version'])
         if 'aws_ec2' in server:
             ec2_data = server['aws_ec2']
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname': server['hostname'], 'aws_instance_id':ec2_data['ec2_instance_id'], 'aws_account_id': ec2_data['ec2_account_id'], 'group_name': server['group_name'],'platform': serverOSversion,'uuid':server['id']})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname': server['hostname'], 'aws_instance_id':ec2_data['ec2_instance_id'], 'aws_account_id': ec2_data['ec2_account_id'], 'group_name': server['group_name'],'platform': serverOSversion,'uuid':server['id'],'region':ec2_data['ec2_region']})
         elif server['server_label'] and "_" in server['server_label']:
             server_label = server['server_label']
             server_label_parts = server_label.split("_")
@@ -255,13 +256,13 @@ def get_halo_servers_id(session):
             #old_agent_count += 1
             server_label_account = server_label_parts[0]
             server_label_instance = server_label_parts[1]
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':server_label_instance, 'aws_account_id': server_label_account, 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id']})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':server_label_instance, 'aws_account_id': server_label_account, 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id'],'region': "N/A"})
         else:
             if server['server_label']:
                 server_label = server['server_label']
             #print server_label_parts[1]
             #old_agent_count += 1
-            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':"N/A", 'aws_account_id': "N/A", 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id']})
+            halo_server_id_list.append({'halo_server_id':server['id'],'ip_address':server['primary_ip_address'],'hostname':server['hostname'],'aws_instance_id':"N/A", 'aws_account_id': "N/A", 'group_name': server['group_name'], 'platform': serverOSversion,'uuid':server['id'],'region': "N/A"})
     print len(reply)
     halo_instance_id_list = byteify(halo_server_id_list)
     print "Halo Server ID and AWS Account ID Lookup Complete " + time.strftime("%Y%m%d-%H%M%S")

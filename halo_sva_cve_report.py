@@ -1,8 +1,8 @@
 # WARNING: This script takes a long time to execute if you have a high count
 #          of active servers.
 # Author: Sean Nicholson
-# Version 1.1.6
-# Date 08.14.2017
+# Version 1.1.7
+# Date 10.06.2017
 # v 1.0.1 - reduced per page calls to the servers endpoint to 100 from 1000
 # v 1.1.1 - added logic for including/excluding AWS metadata
 # v 1.1.2 - added 4 tier CVE rating logic to --allcves
@@ -10,6 +10,7 @@
 # v 1.1.4 - Added CVSS score to the CSV report
 # v 1.1.5 - Added --criticalcves command line argument option
 # v 1.1.6 - Added region to CSV export
+# v 1.1.7 - Added date stamp to completion of report
 ##############################################################################
 
 # Import Python Modules
@@ -94,9 +95,9 @@ def get_scan_data(session):
         print "AWS Setting: {0}".format(include_aws)
     if include_aws:
         if groups_setting:
-            ofile.write('AWS Account Number,Halo Group,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
+            ofile.write('Account Number,Halo Group,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
         else:
-            ofile.write('AWS Account Number,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
+            ofile.write('Account Number,AWS Instance ID,AWS Region,Hostname,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
     else:
         if groups_setting:
             ofile.write('Hostname,Halo Group,IP Address,OS Platform,Package Name,Package Version,CVE,CVSS Score,CVE Rating,CVE Information\n')
@@ -231,6 +232,8 @@ def get_scan_data(session):
                 print "Response Error:{0}, pausing 60 secs, then retrying".format(status_code)
                 retry_loop_counter += 1
                 time.sleep(60)
+    row="Report complete " + time.strftime("%Y%m%d-%H%M%S")+ "\n"
+    ofile.write(row)
     ofile.close()
 
 
